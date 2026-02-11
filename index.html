@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Will you be my Valentine? 💚</title>
+
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg1: #e8f5e9;
+      --bg2: #fff8f0;
+      --card: #ffffffdd;
+      --yes: #66bb6a;
+      --yesHover: #4caf50;
+      --accent: #81c784;
+      --heartPink: #ff6b9d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top right, var(--bg1), var(--bg2));
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      padding: 16px;
+      position: relative;
+    }
+
+    /* Floating hearts background */
+    .floating-hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .heart-float {
+      position: absolute;
+      font-size: 20px;
+      opacity: 0;
+      animation: float-up 8s infinite;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* FULL-SCREEN CONFETTI CANVAS */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .card {
+      width: min(720px, 92vw);
+      padding: 32px 28px;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      text-align: center;
+      box-shadow: 0 20px 70px rgba(102, 187, 106, 0.2), 
+                  0 8px 24px rgba(0,0,0,.08);
+      border: 2px solid rgba(129, 199, 132, 0.3);
+      position: relative;
+      z-index: 10;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      animation: sparkle 2s infinite;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { 
+        transform: scale(0) rotate(0deg); 
+        opacity: 0; 
+      }
+      50% { 
+        transform: scale(1) rotate(180deg); 
+        opacity: 1; 
+      }
+    }
+
+    .art {
+      width: min(280px, 80vw);
+      margin: 0 auto 16px;
+      display: block;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.15));
+      animation: gentle-bounce 3s ease-in-out infinite;
+    }
+
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: clamp(28px, 4.5vw, 48px);
+      margin: 16px 0 12px;
+      background: linear-gradient(135deg, #2e7d32, #66bb6a, #4caf50);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: clamp(14px, 2vw, 18px);
+      color: #558b2f;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .button-zone {
+      position: relative;
+      width: min(520px, 92%);
+      height: 150px;
+      margin: 0 auto;
+      touch-action: none;
+    }
+
+    button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 18px 32px;
+      font-size: 19px;
+      font-weight: 800;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(0,0,0,.16);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all .15s ease;
+    }
+
+    #yesBtn {
+      left: 18%;
+      background: linear-gradient(135deg, var(--yes), var(--accent));
+      color: #fff;
+      border: 3px solid rgba(255, 255, 255, 0.4);
+    }
+    #yesBtn:hover { 
+      background: linear-gradient(135deg, var(--yesHover), var(--yes));
+      box-shadow: 0 16px 36px rgba(76, 175, 80, 0.4);
+    }
+
+    #noBtn {
+      left: 62%;
+      background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+      color: #424242;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #558b2f;
+      opacity: .8;
+      font-weight: 500;
+    }
+
+    .result {
+      display: none;
+      margin-top: 24px;
+      animation: pop .4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .result h2 {
+      font-size: clamp(32px, 5vw, 52px);
+      margin: 14px 0;
+      background: linear-gradient(135deg, #66bb6a, #4caf50, #2e7d32);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 900;
+    }
+
+    .result p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: #2e7d32;
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    .fireworks {
+      width: min(380px, 90vw);
+      margin: 16px auto 0;
+      display: block;
+      border-radius: 16px;
+    }
+
+    @keyframes pop {
+      from { transform: scale(.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Pulsing hearts effect */
+    .heart-pulse {
+      display: inline-block;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Floating hearts background -->
+  <div class="floating-hearts" id="floatingHearts"></div>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="card">
+    <!-- Sparkles -->
+    <span class="sparkle" style="top: 20px; left: 20px;">✨</span>
+    <span class="sparkle" style="top: 20px; right: 20px; animation-delay: 0.5s;">💚</span>
+    <span class="sparkle" style="bottom: 20px; left: 20px; animation-delay: 1s;">🌟</span>
+    <span class="sparkle" style="bottom: 20px; right: 20px; animation-delay: 1.5s;">✨</span>
+
+    <!-- BEAR WITH HEART -->
+    <svg class="art" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bearFur" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8d6e63"/>
+          <stop offset="100%" stop-color="#6d4c41"/>
+        </linearGradient>
+        <linearGradient id="heart" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff6b9d"/>
+          <stop offset="100%" stop-color="#ff1f68"/>
+        </linearGradient>
+        <linearGradient id="greenAccent" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#81c784"/>
+          <stop offset="100%" stop-color="#66bb6a"/>
+        </linearGradient>
+        <radialGradient id="snout" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="#d7ccc8"/>
+          <stop offset="100%" stop-color="#bcaaa4"/>
+        </radialGradient>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="4" stdDeviation="3" flood-opacity="0.3"/>
+        </filter>
+      </defs>
+
+      <!-- Bear ears -->
+      <circle cx="115" cy="85" r="32" fill="url(#bearFur)" filter="url(#shadow)"/>
+      <circle cx="115" cy="85" r="20" fill="#a1887f"/>
+      <circle cx="205" cy="85" r="32" fill="url(#bearFur)" filter="url(#shadow)"/>
+      <circle cx="205" cy="85" r="20" fill="#a1887f"/>
+
+      <!-- Bear head -->
+      <circle cx="160" cy="140" r="65" fill="url(#bearFur)" filter="url(#shadow)"/>
+      
+      <!-- Bear snout -->
+      <ellipse cx="160" cy="155" rx="38" ry="32" fill="url(#snout)"/>
+      
+      <!-- Bear nose -->
+      <ellipse cx="160" cy="150" rx="12" ry="10" fill="#4a2c2a"/>
+      
+      <!-- Bear mouth -->
+      <path d="M 160 150 Q 165 158 160 160 Q 155 158 160 150" 
+            fill="none" stroke="#4a2c2a" stroke-width="2.5" stroke-linecap="round"/>
+      
+      <!-- Bear eyes -->
+      <circle cx="140" cy="130" r="6" fill="#2c1810"/>
+      <circle cx="142" cy="128" r="2" fill="#fff"/>
+      <circle cx="180" cy="130" r="6" fill="#2c1810"/>
+      <circle cx="182" cy="128" r="2" fill="#fff"/>
+      
+      <!-- Eyebrows -->
+      <path d="M 132 122 Q 140 118 148 120" 
+            fill="none" stroke="#4a2c2a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 172 120 Q 180 118 188 122" 
+            fill="none" stroke="#4a2c2a" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Green bow tie -->
+      <path d="M 140 195 L 130 205 L 140 215 L 150 205 Z" fill="url(#greenAccent)"/>
+      <path d="M 180 195 L 170 205 L 180 215 L 190 205 Z" fill="url(#greenAccent)"/>
+      <circle cx="160" cy="205" r="8" fill="url(#greenAccent)"/>
+      <circle cx="160" cy="205" r="3" fill="#fff" opacity="0.6"/>
+
+      <!-- Heart held by bear -->
+      <g transform="translate(160, 240)">
+        <path d="M 0 -15 
+                 C -25 -35, -45 -20, -45 0
+                 C -45 25, -20 45, 0 60
+                 C 20 45, 45 25, 45 0
+                 C 45 -20, 25 -35, 0 -15 Z"
+              fill="url(#heart)" filter="url(#shadow)">
+          <animate attributeName="d" 
+                   values="M 0 -15 C -25 -35, -45 -20, -45 0 C -45 25, -20 45, 0 60 C 20 45, 45 25, 45 0 C 45 -20, 25 -35, 0 -15 Z;
+                           M 0 -18 C -27 -38, -48 -22, -48 0 C -48 27, -22 48, 0 65 C 22 48, 48 27, 48 0 C 48 -22, 27 -38, 0 -18 Z;
+                           M 0 -15 C -25 -35, -45 -20, -45 0 C -45 25, -20 45, 0 60 C 20 45, 45 25, 45 0 C 45 -20, 25 -35, 0 -15 Z"
+                   dur="1.5s" repeatCount="indefinite"/>
+        </path>
+        <!-- Sparkle on heart -->
+        <circle cx="-15" cy="-5" r="3" fill="#fff" opacity="0.8">
+          <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+    </svg>
+
+    <h1>samyakta will you be my valentine?</h1>
+    <p class="subtitle">You'd make me the happiest person alive <span class="heart-pulse">💚</span></p>
+
+    <section class="button-zone" id="zone">
+      <button id="yesBtn">Yes! 💚</button>
+      <button id="noBtn">No</button>
+    </section>
+
+    <!-- HINT -->
+    <div class="hint" id="hint">The "No" button is feeling shy today 🐻</div>
+
+    <section class="result" id="result">
+      <h2>YESSS! 🎉💚</h2>
+      <p>I'm so excited! You just made my day, my week, my year! ✨</p>
+      <p>Can't wait to celebrate with you! 🐻💕</p>
+      <img
+        class="fireworks"
+        src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
+        alt="Fireworks celebration"
+      />
+    </section>
+  </main>
+
+  <script>
+    const zone = document.getElementById("zone");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const result = document.getElementById("result");
+    const hint = document.getElementById("hint");
+
+    /* ---------- FLOATING HEARTS ---------- */
+    const floatingHearts = document.getElementById("floatingHearts");
+    const heartSymbols = ['💚', '💖', '💕', '✨', '🌟'];
+    
+    function createFloatingHeart() {
+      const heart = document.createElement('div');
+      heart.className = 'heart-float';
+      heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.animationDelay = Math.random() * 5 + 's';
+      heart.style.animationDuration = (8 + Math.random() * 4) + 's';
+      floatingHearts.appendChild(heart);
+      
+      setTimeout(() => heart.remove(), 12000);
+    }
+    
+    // Create floating hearts periodically
+    setInterval(createFloatingHeart, 800);
+    for (let i = 0; i < 5; i++) {
+      setTimeout(createFloatingHeart, i * 400);
+    }
+
+    /* ---------- CONFETTI ---------- */
+    const confettiCanvas = document.getElementById("confettiCanvas");
+
+    function resizeConfettiCanvas() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+      confettiCanvas.style.width = "100vw";
+      confettiCanvas.style.height = "100vh";
+    }
+
+    resizeConfettiCanvas();
+    window.addEventListener("resize", resizeConfettiCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
+
+    const confettiInstance = confetti.create(confettiCanvas, {
+      resize: false,
+      useWorker: true
+    });
+
+    function fullScreenConfetti() {
+      const colors = ['#66bb6a', '#81c784', '#4caf50', '#ff6b9d', '#ffeb3b', '#fff'];
+      const end = Date.now() + 2500;
+
+      (function frame() {
+        confettiInstance({
+          particleCount: 15,
+          spread: 100,
+          startVelocity: 50,
+          ticks: 200,
+          origin: { x: Math.random(), y: Math.random() * 0.4 },
+          colors: colors
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
+      setTimeout(() => {
+        confettiInstance({
+          particleCount: 400,
+          spread: 160,
+          startVelocity: 65,
+          ticks: 250,
+          origin: { x: 0.5, y: 0.5 },
+          colors: colors
+        });
+      }, 400);
+
+      // Extra bursts
+      setTimeout(() => {
+        confettiInstance({
+          particleCount: 100,
+          angle: 60,
+          spread: 80,
+          origin: { x: 0, y: 0.6 },
+          colors: colors
+        });
+        confettiInstance({
+          particleCount: 100,
+          angle: 120,
+          spread: 80,
+          origin: { x: 1, y: 0.6 },
+          colors: colors
+        });
+      }, 800);
+    }
+
+    /* ---------- YES BUTTON GROWS ---------- */
+    let yesScale = 1;
+    function growYes() {
+      yesScale = Math.min(2.4, yesScale + 0.12);
+      yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+    }
+
+    /* ---------- NO BUTTON RUNS AWAY ---------- */
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function moveNo(px, py) {
+      const z = zone.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      let dx = (b.left + b.width / 2) - px;
+      let dy = (b.top + b.height / 2) - py;
+      let mag = Math.hypot(dx, dy) || 1;
+      dx /= mag;
+      dy /= mag;
+
+      let newLeft = (b.left - z.left) + dx * 160;
+      let newTop  = (b.top - z.top) + dy * 160;
+
+      newLeft = clamp(newLeft, 0, z.width - b.width);
+      newTop  = clamp(newTop, 0, z.height - b.height);
+
+      noBtn.style.left = newLeft + "px";
+      noBtn.style.top = newTop + "px";
+      noBtn.style.transform = "none";
+
+      growYes();
+    }
+
+    zone.addEventListener("pointermove", e => {
+      const b = noBtn.getBoundingClientRect();
+      const d = Math.hypot(
+        (b.left + b.width / 2) - e.clientX,
+        (b.top + b.height / 2) - e.clientY
+      );
+      if (d < 150) moveNo(e.clientX, e.clientY);
+    });
+
+    noBtn.addEventListener("click", e => e.preventDefault());
+
+    /* ---------- YES CLICK ---------- */
+    yesBtn.addEventListener("click", () => {
+      zone.style.display = "none";
+      hint.style.display = "none";
+      result.style.display = "block";
+      resizeConfettiCanvas();
+      fullScreenConfetti();
+      
+      // Create extra floating hearts on success
+      for (let i = 0; i < 20; i++) {
+        setTimeout(createFloatingHeart, i * 100);
+      }
+    });
+  </script>
+</body>
+</html>

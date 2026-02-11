@@ -26,10 +26,13 @@
       min-height: 100svh;
       display: grid;
       place-items: center;
+      align-content: start;
       background: radial-gradient(circle at top right, var(--bg1), var(--bg2));
+      background-attachment: fixed;
       font-family: 'Segoe UI', system-ui, sans-serif;
-      overflow: hidden;
-      padding: 16px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 24px 16px;
       position: relative;
     }
 
@@ -76,19 +79,7 @@
       z-index: 9999;
     }
 
-    .card {
-      width: min(720px, 92vw);
-      padding: 32px 28px;
-      background: var(--card);
-      backdrop-filter: blur(12px);
-      border-radius: 28px;
-      text-align: center;
-      box-shadow: 0 20px 70px rgba(102, 187, 106, 0.2), 
-                  0 8px 24px rgba(0,0,0,.08);
-      border: 2px solid rgba(129, 199, 132, 0.3);
-      position: relative;
-      z-index: 10;
-    }
+
 
     .sparkle {
       position: absolute;
@@ -214,12 +205,25 @@
 
     .fireworks {
       width: min(380px, 90vw);
-      margin: 16px auto 0;
+      margin: 16px auto 8px;
       display: block;
       border-radius: 16px;
     }
 
-    @keyframes pop {
+    .card {
+      width: min(720px, 92vw);
+      padding: 32px 28px 36px;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      text-align: center;
+      box-shadow: 0 20px 70px rgba(102, 187, 106, 0.2), 
+                  0 8px 24px rgba(0,0,0,.08);
+      border: 2px solid rgba(129, 199, 132, 0.3);
+      position: relative;
+      z-index: 10;
+      margin: auto;
+    }
       from { transform: scale(.85); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
@@ -332,7 +336,7 @@
       </g>
     </svg>
 
-    <h1>samyakta will you be my valentine?</h1>
+    <h1>nirali will you be my valentine?</h1>
     <p class="subtitle">You'd make me the happiest person alive <span class="heart-pulse">💚</span></p>
 
     <section class="button-zone" id="zone">
@@ -503,6 +507,9 @@
       result.style.display = "block";
       resizeConfettiCanvas();
       fullScreenConfetti();
+      
+      // Scroll to top so full result is visible
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Create extra floating hearts on success
       for (let i = 0; i < 20; i++) {
